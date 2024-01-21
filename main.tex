@@ -109,4 +109,21 @@ HTTP response: Signed cert or error
 \begin{frame}{Intel}
 \end{frame}
 
+\section{Merits of CSR}
+\begin{frame}{Merits of Attestation via CSR}
+\begin{itemize}
+    \item CSRs \& Certs don't require special software on the client end, second/third parties can use existing software.
+    \item No private information about the hardware is leaked.
+\end{itemize}
+\end{frame}
+
+\section{Drawbacks of CSR}
+\begin{frame}{Drawbacks of Attestation via CSR}
+The Steward CA has to be trusted:
+\begin{itemize}
+    \item added the Steward CA to the computer's list of CAs, or modify the application to only allow this specific CA;
+    \item any configuration of the Steward isn't known, what allowed vulnerabilities in any firmware or allowed versions of Enarx are permitted?
+\end{itemize}
+\end{frame}
+
 \end{document}
