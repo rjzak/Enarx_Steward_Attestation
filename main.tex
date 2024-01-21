@@ -1,0 +1,58 @@
+\documentclass[graphics]{beamer}
+\usepackage{graphicx} % Required for inserting images
+
+\usetheme{Boadilla}
+\title{Enarx \& Steward Attestation}
+\author{Enarx}
+\date{March 2024}
+
+\begin{document}
+
+\begin{frame}{}
+\centering
+    Confidential Computing Attestation with Enarx: Steward \& CSRs
+\end{frame}
+
+\frame{\tableofcontents}
+
+\section{Enarx}
+\begin{frame}{What is Enarx?}
+
+Enarx:
+\begin{itemize}
+\item runs WebAssembly (WASI) applications in Trusted Execution Environments (TEEs)
+\begin{itemize}
+\item AMD SEV-SNP, Intel SGX/EDMM
+\item Others can be supported!
+\end{itemize}
+\item is written in Rust
+\item began as a project at Red Hat, was later a project of Profian, which came from Red Hat
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+Workflow:
+\begin{enumerate}
+    \item Before running a job, Enarx caches the vendor's CRL, and for AMD, caches the CPU's public key (manual process)
+    \item The Keep (what Enarx calls an initialized TEE) is created
+    \item An Attestation Report is requested from the CPU
+    \item A CSR is created, with the attestation report as an extension
+    \item The CSR is sent to Steward for validation
+    \item If valid, Steward responds with a proper X509 Certificate
+    \item The Wasm file is loaded into memory and execution begins
+    \item Enarx transparently wraps any network traffic with the Cert and internal private key to create TLS traffic
+    \item Second parties can use the Steward-provided certificate to ensure attestation
+\end{enumerate}
+
+\end{frame}
+
+\section{Steward}
+\begin{frame}{What is Steward?}
+\end{frame}
+
+\section{Attestation via CSR}
+\begin{frame}{Steward's Attestation Process}
+\end{frame}
+
+\end{document}
