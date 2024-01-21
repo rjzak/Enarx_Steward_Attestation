@@ -1,16 +1,27 @@
 \documentclass[graphics]{beamer}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{tikz}
 
 \usetheme{Boadilla}
 \title{Enarx \& Steward Attestation}
-\author{Enarx}
+\author{Richard Zak // Enarx}
 \date{March 2024}
+
+\titlegraphic { 
+\begin{tikzpicture}[overlay,remember picture]
+\node[left=0.2cm] at (current page.-25){
+    \includegraphics[width=1cm]{images/enarx.png}
+};
+\node[right=1.0cm] at (current page.205){
+    \includegraphics[width=1cm]{images/ccc.png}
+};
+\end{tikzpicture}
+}
 
 \begin{document}
 
-\begin{frame}{}
-\centering
-    Confidential Computing Attestation with Enarx: Steward \& CSRs
+\begin{frame}
+\maketitle
 \end{frame}
 
 \frame{\tableofcontents}
@@ -20,18 +31,19 @@
 
 Enarx:
 \begin{itemize}
-\item runs WebAssembly (WASI) applications in Trusted Execution Environments (TEEs)
+\item runs WebAssembly (WASI) applications in Trusted Execution Environments (TEEs) under Linux
 \begin{itemize}
 \item AMD SEV-SNP, Intel SGX/EDMM
 \item Others can be supported!
 \end{itemize}
 \item is written in Rust
-\item began as a project at Red Hat, was later a project of Profian, which came from Red Hat
+\item can run on Windows, macOS, and ARM Linux without a TEE\footnote{Without protection, for testing \& development}
+\item open source project, Apache 2.0 licensed
 \end{itemize}
 
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Running an Application}
 Workflow:
 \begin{enumerate}
     \item Before running a job, Enarx caches the vendor's CRL, and for AMD, caches the CPU's public key (manual process)
@@ -40,7 +52,7 @@ Workflow:
     \item A CSR is created, with the attestation report as an extension
     \item The CSR is sent to Steward for validation
     \item If valid, Steward responds with a proper X509 Certificate
-    \item The Wasm file is loaded into memory and execution begins
+    \item The Wasm file is loaded into memory\footnote{Wasm applications may be run from the filesystem or from Drawbridge for application privacy.} and execution begins
     \item Enarx transparently wraps any network traffic with the Cert and internal private key to create TLS traffic
     \item Second parties can use the Steward-provided certificate to ensure attestation
 \end{enumerate}
@@ -49,10 +61,52 @@ Workflow:
 
 \section{Steward}
 \begin{frame}{What is Steward?}
+Steward is a Confidential Computing-aware Certificate Authority.
+\begin{itemize}
+\item Written in Rust
+\item AGPL licensed, but will be re-licensed to Apache 2 and moved to the Enarx organization on Github
+\item Was a product of Profian
+\item Can be compiled as a native binary, or as a Wasi application to be run with Enarx
+\item Steward is stateless, and the only data is has are the vendors' root CA certificates
+\end{itemize}
+
 \end{frame}
 
 \section{Attestation via CSR}
 \begin{frame}{Steward's Attestation Process}
+Receive CSR contents as HTTP Post:
+\begin{itemize}
+    \item Attestation report
+    \item Vendor CRL
+    \item AMD: CPU cert (Intel has the CPU cert in the Report)
+\end{itemize}
+
+The following items are checked:
+\begin{itemize}
+    \item Does the attestation report signature match the CPU public key?
+    \item Is the CPU's certificate in the PKI chain?
+    \begin{itemize}
+        \item Vendor CA $\rightarrow$ intermediate cert $\rightarrow$ CPU cert
+    \end{itemize}
+    \item Is the CRL signed by the vendor CA?
+    \item Is the CPU's certificate not in the vendor CRL?
+    \item Optional/configurable items:
+    \begin{itemize}
+        \item Minimum CPU firmware?
+        \item Expected Enarx hash?
+        \item Expected signature of the Enarx binary?
+    \end{itemize}
+\end{itemize}
+
+HTTP response: Signed cert or error
+\end{frame}
+
+\subsection{AMD}
+\begin{frame}{AMD}
+\end{frame}
+
+\subsection{Intel}
+\begin{frame}{Intel}
 \end{frame}
 
 \end{document}
