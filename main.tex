@@ -2,6 +2,8 @@
 \usepackage{graphicx} % Required for inserting images
 \usepackage{minted}
 \usepackage{tikz}
+\usepackage{bbding} % For checkmark in itemize
+\newcommand*\tick{\item[\Checkmark]}
 
 % Adjustments to the page counts for the appendix
 \newcommand{\backupbegin}{
@@ -34,6 +36,7 @@
     \includegraphics[width=1cm]{images/enarx.png}
 };
 \node[right=1.0cm] at (current page.205){
+    \includegraphics[width=1cm]{images/LF.png}
     \includegraphics[width=1cm]{images/ccc.png}
 };
 \end{tikzpicture}
@@ -90,6 +93,7 @@ Steward is a Confidential Computing-aware Certificate Authority.
     \item Can be compiled as a native binary, or as a Wasi application for Enarx
     \item Steward is stateless, only has the vendors' root CA certificates.
     \item Steward can generate a random key pair, or use provided public \& private key.
+    \item When deployed from Drawbridge, adds workload hash to the Certificate (SAN field) as the Drawbridge URL\footnote{Was planned, might not be implemented.}.
 \end{itemize}
 \end{frame}
 
@@ -145,12 +149,24 @@ The AMD CSR has a few specific items to check:
         \item Migration Assistant has to be disabled, we don't want Enarx losing control of it's guest.
         \item Debug is rejected if the Steward isn't compiled for debug mode, ensuring a release build won't allow a debug-enabled workload.
     \end{itemize}
+    \item Hashes are SHA-384
 \end{itemize}
 \end{frame}
 
 \subsection{Intel}
 \begin{frame}{Intel}
-TO-DO
+Intel's format is rather different:
+\begin{itemize}
+    \item The Intel TCB\footnote{Trusted Computing Base} report is sent as part of the CSR, and requires the ``fmspc''\footnote{Family-Model-Stepping-Platform Type-CustomSKU}, which identifies the hardware, and contains:
+    \begin{itemize}
+        \item Whether the firmware is updated, or Intel advisories for the firmware.
+        \item Signing certificate \& signature of the TCB.
+        \item Next update date for the TCB.
+        \item Steward checks the signature, certificate, and that the TCB is current.
+    \end{itemize}
+    \item Steward checks that the FMSPC from the public key matches the TCB report.
+    \item Hashes are SHA-256
+\end{itemize}
 \end{frame}
 
 \subsection{Example Config}
@@ -212,25 +228,35 @@ The Steward CA has to be trusted:
 \section{Appendix}
 \begin{frame}{The Future of Enarx}
     Enarx development has slowed since Profian closed, but it's alive and there are a few things on the roadmap:
-    \begin{itemize}
-        \item Recreate \texttt{try.enarx.dev}, where people can run their application in a hosted TEE for a limited time using Profian's ``Benefice'' project.
-        \item Run a public Steward for people to test Enarx with an Enarx CA.
+    \only<1> {
         \begin{itemize}
-            \item Possibly run a demo or debug Steward with looser restrictions.
-            \item URL: \texttt{ca.enarx.dev}
-            \item HSM integration
+            \item Recreate \texttt{try.enarx.dev}, where people can run their application in a hosted TEE for a limited time using Profian's ``Benefice'' project.
+            \item Run a public Steward for people to test Enarx with an Enarx CA.
+            \begin{itemize}
+                \item Possibly run a demo or debug Steward with looser restrictions.
+                \item URL: \texttt{ca.enarx.dev}
+                \item HSM integration
+            \end{itemize}
+            \item Run a public Drawbridge.
+            \item Continue work on the VFS project for Enarx:
+            \begin{itemize}
+                \item Network connection policies
+                \item Read-only on the host unencrypted
+                \item Transparently encrypt writes to local disk.
+                \item Virtual file operating for managing crypto operations.
+                \item Virtual file operations for opening new network connections
+            \end{itemize}
+            \item Continue to promote Enarx online and in-person.
+            \item Keep Enarx updated with changes in WebAssembly.
         \end{itemize}
-        \item Run a public Drawbridge.
-        \item Continue work on the VFS project for Enarx:
+    }
+    \only<2> {
         \begin{itemize}
-            \item Network connection policies
-            \item Read-only on the host unencrypted
-            \item Transparently encrypt writes to local disk.
-            \item Virtual file operating for managing crypto operations.
-            \item Virtual file operations for opening new network connections
+            \tick Received \& configured CI servers so Enarx commits are tested with SGX \& SNP.
+            \tick Merged in support for AMD SNP v10 patches.
+            \tick Steward \& Drawbridge relicensed.
         \end{itemize}
-        \item Continue to promote Enarx online and in-person.
-    \end{itemize}
+    }
 \end{frame}
 \backupend
 
