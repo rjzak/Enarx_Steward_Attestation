@@ -1,6 +1,27 @@
 \documentclass[graphics]{beamer}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{minted}
 \usepackage{tikz}
+
+% Adjustments to the page counts for the appendix
+\newcommand{\backupbegin}{
+   \newcounter{framenumberappendix}
+   \setcounter{framenumberappendix}{\value{framenumber}}
+}
+\newcommand{\backupend}{
+   \addtocounter{framenumberappendix}{-\value{framenumber}}
+   \addtocounter{framenumber}{\value{framenumberappendix}} 
+}
+
+% DRAFT
+%\usepackage{background}
+%\backgroundsetup{
+%    placement=center,
+%    scale=2,
+%    contents={DRAFT},
+%    opacity=0.5
+%}
+%\setbeamertemplate{background}{\BgMaterial}
 
 \usetheme{Boadilla}
 \title{Enarx \& Steward Attestation}
@@ -51,8 +72,8 @@ Workflow:
     \item An Attestation Report is requested from the CPU
     \item A CSR is created, with the attestation report as an extension
     \item The CSR is sent to Steward for validation
-    \item If valid, Steward responds with a proper X509 Certificate
-    \item The Wasm file is loaded into memory\footnote{Wasm applications may be run from the filesystem or from Drawbridge for application privacy.} and execution begins
+    \item If valid, Steward responds with a signed X509 Certificate
+    \item The Wasm file is loaded into memory\footnote{Loaded from disk or from Drawbridge for application privacy.} and execution begins
     \item Enarx transparently wraps any network traffic with the Cert and internal private key to create TLS traffic
     \item Second parties can use the Steward-provided certificate to ensure attestation
 \end{enumerate}
@@ -63,18 +84,31 @@ Workflow:
 \begin{frame}{What is Steward?}
 Steward is a Confidential Computing-aware Certificate Authority.
 \begin{itemize}
-\item Written in Rust
-\item AGPL licensed, but will be re-licensed to Apache 2 and moved to the Enarx organization on Github
-\item Was a product of Profian
-\item Can be compiled as a native binary, or as a Wasi application to be run with Enarx
-\item Steward is stateless, and the only data is has are the vendors' root CA certificates
+    \item Written in Rust
+    \item Apache 2.0 licensed
+    \item Was a product of Profian, moved to the Enarx org, donated to the Linux Foundation
+    \item Can be compiled as a native binary, or as a Wasi application for Enarx
+    \item Steward is stateless, only has the vendors' root CA certificates.
+    \item Steward can generate a random key pair, or use provided public \& private key.
 \end{itemize}
+\end{frame}
 
+\section{Drawbridge}
+\begin{frame}{What is Drawbridge?}
+Drawbridge is a Confidential Computing-aware workload repository
+\begin{itemize}
+    \item Written in Rust
+    \item Apache 2.0 licensed
+    \item Was a product of Profian, moved to the Enarx org, donated to the Linux Foundation
+    \item Can be compiled as a native binary; in the future as a Wasi application for Enarx
+    \item Only release a workload to Enarx if it authenticates with a Steward-signed http client authentication.
+    \item Uses OpenID to handle user accounts through a provider.
+\end{itemize}
 \end{frame}
 
 \section{Attestation via CSR}
 \begin{frame}{Steward's Attestation Process}
-Receive CSR contents as HTTP Post:
+Receive CSR contents as HTTP Post as an Extension:
 \begin{itemize}
     \item Attestation report
     \item Vendor CRL
@@ -93,8 +127,8 @@ The following items are checked:
     \item Optional/configurable items:
     \begin{itemize}
         \item Minimum CPU firmware?
-        \item Expected Enarx hash?
-        \item Expected signature of the Enarx binary?
+        \item Expected Enarx hash and/or signing key for the Enarx binary?
+        \item Ensure Enarx hash and/or signing key isn't blacklisted.
     \end{itemize}
 \end{itemize}
 
@@ -103,10 +137,43 @@ HTTP response: Signed cert or error
 
 \subsection{AMD}
 \begin{frame}{AMD}
+The AMD CSR has a few specific items to check:
+\begin{itemize}
+    \item Ensure unused parts of the report are zeroed
+    \item AMD has Policy Flags to check:
+    \begin{itemize}
+        \item Migration Assistant has to be disabled, we don't want Enarx losing control of it's guest.
+        \item Debug is rejected if the Steward isn't compiled for debug mode, ensuring a release build won't allow a debug-enabled workload.
+    \end{itemize}
+\end{itemize}
 \end{frame}
 
 \subsection{Intel}
 \begin{frame}{Intel}
+TO-DO
+\end{frame}
+
+\subsection{Example Config}
+\begin{frame}[fragile]{Example Config}
+    \begin{minted}[fontsize=\scriptsize]{toml}
+[sgx]
+signer = ["7a49a07df0f8e90a6e1d9a63e3c696d9c844f0e3f8739b21daa640f99facc48a"]
+hash = ["4046ea255f0455131a024e1265ac1ebd131fdbd1240f1712a00381f6f04e8c15"]
+features = ["Debug", "ProvisioningKey", "EInitKey", "KSS"]
+enclave_security_version = 0
+enclave_product_id = 0
+allowed_advisories = ["INTEL-SA-00289", "INTEL-SA-00381", "INTEL-SA-00389",
+    "INTEL-SA-00477", "INTEL-SA-00586", "INTEL-SA-00614", "INTEL-SA-00615",
+    "INTEL-SA-00617", "INTEL-SA-00657"]
+
+[snp]
+signer = ["7dc22240a8344fce6ba5f22ffbedabc52d4123ae0ba1c59796e521b953916b503f223b15c4429e7d8c5489ad71f1e193"]
+id_key_digest = ["d71a4d1da440d515cd69fbb1314acf4221726e82768a8bf6e4a4063ed542ac78349c8145b4666a4242a91a374387b473"]
+hash = ["ff717ae719840c93c1fca3b7db96488454c3c21b43531488eecff51cfed3febcd91da8be87a4cbcbc52a3bae770987c3"]
+abi = ">=1.51"
+policy_flags = ["SMT"]
+platform_info_flags = "SME"
+    \end{minted}
 \end{frame}
 
 \section{Merits of CSR}
@@ -121,9 +188,50 @@ HTTP response: Signed cert or error
 \begin{frame}{Drawbacks of Attestation via CSR}
 The Steward CA has to be trusted:
 \begin{itemize}
-    \item added the Steward CA to the computer's list of CAs, or modify the application to only allow this specific CA;
-    \item any configuration of the Steward isn't known, what allowed vulnerabilities in any firmware or allowed versions of Enarx are permitted?
+    \item added the Steward CA to the operating system's list of CAs, or modify the 2nd party application to only allow this specific CA;
+    \item any configuration of the Steward isn't known:
+    \begin{itemize}
+        \item any allowed vulnerabilities in the firmware?
+        \item allowed versions of Enarx?
+    \end{itemize}
 \end{itemize}
 \end{frame}
+
+\section{Thank You!}
+\begin{frame}
+\begin{itemize}
+    \item Thank you to Nathaniel McCallum \& Mike Bursell for going on on a limb and creating Enarx, creating Profian, and hiring me to work at Profian.
+    \item Thank you to EuroProofNet for having me.
+    \item Thank you to AMD and Intel for their exceptional technologies and fantastic documentation.
+    \item Thank you to the Confidential Computing Consortium for supporting this technology and sending me to the conference to speak.
+\end{itemize}
+\end{frame}
+
+\appendix
+\backupbegin
+\section{Appendix}
+\begin{frame}{The Future of Enarx}
+    Enarx development has slowed since Profian closed, but it's alive and there are a few things on the roadmap:
+    \begin{itemize}
+        \item Recreate \texttt{try.enarx.dev}, where people can run their application in a hosted TEE for a limited time using Profian's ``Benefice'' project.
+        \item Run a public Steward for people to test Enarx with an Enarx CA.
+        \begin{itemize}
+            \item Possibly run a demo or debug Steward with looser restrictions.
+            \item URL: \texttt{ca.enarx.dev}
+            \item HSM integration
+        \end{itemize}
+        \item Run a public Drawbridge.
+        \item Continue work on the VFS project for Enarx:
+        \begin{itemize}
+            \item Network connection policies
+            \item Read-only on the host unencrypted
+            \item Transparently encrypt writes to local disk.
+            \item Virtual file operating for managing crypto operations.
+            \item Virtual file operations for opening new network connections
+        \end{itemize}
+        \item Continue to promote Enarx online and in-person.
+    \end{itemize}
+\end{frame}
+\backupend
 
 \end{document}
