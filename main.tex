@@ -33,10 +33,10 @@
 \titlegraphic { 
 \begin{tikzpicture}[overlay,remember picture]
 \node[left=0.2cm] at (current page.-25){
-    \includegraphics[width=1cm]{images/enarx.png}
+    \includegraphics[width=1.1cm]{images/enarx.png}
 };
 \node[right=1.0cm] at (current page.205){
-    \includegraphics[width=1cm]{images/LF.png}
+    \includegraphics[width=1.1cm]{images/LF.png}
     \includegraphics[width=1cm]{images/ccc.png}
 };
 \end{tikzpicture}
@@ -64,22 +64,6 @@ Enarx:
 \item can run on Windows, macOS, and ARM Linux without a TEE\footnote{Without protection, for testing \& development}
 \item open source project, Apache 2.0 licensed
 \end{itemize}
-
-\end{frame}
-
-\begin{frame}{Running an Application}
-Workflow:
-\begin{enumerate}
-    \item Before running a job, Enarx caches the vendor's CRL, and for AMD, caches the CPU's public key (manual process)
-    \item The Keep (what Enarx calls an initialized TEE) is created
-    \item An Attestation Report is requested from the CPU
-    \item A CSR is created, with the attestation report as an extension
-    \item The CSR is sent to Steward for validation
-    \item If valid, Steward responds with a signed X509 Certificate
-    \item The Wasm file is loaded into memory\footnote{Loaded from disk or from Drawbridge for application privacy.} and execution begins
-    \item Enarx transparently wraps any network traffic with the Cert and internal private key to create TLS traffic
-    \item Second parties can use the Steward-provided certificate to ensure attestation
-\end{enumerate}
 
 \end{frame}
 
@@ -112,11 +96,12 @@ Drawbridge is a Confidential Computing-aware workload repository
 
 \section{Attestation via CSR}
 \begin{frame}{Steward's Attestation Process}
-Receive CSR contents as HTTP Post as an Extension:
+Receive CSR contents via HTTP Post as an Extension:
 \begin{itemize}
     \item Attestation report
     \item Vendor CRL
     \item AMD: CPU cert (Intel has the CPU cert in the Report)
+    \item Intel: TCB report (firmware details)
 \end{itemize}
 
 The following items are checked:
@@ -224,7 +209,7 @@ platform_info_flags = "SME"
 The Steward CA has to be trusted:
 \begin{itemize}
     \item added the Steward CA to the operating system's list of CAs, or modify the 2nd party application to only allow this specific CA;
-    \item any configuration of the Steward isn't known:
+    \item any configuration of the Steward isn't known to the relying party:
     \begin{itemize}
         \item any allowed vulnerabilities in the firmware?
         \item allowed versions of Enarx?
@@ -235,10 +220,10 @@ The Steward CA has to be trusted:
 \section{Thank You!}
 \begin{frame}
 \begin{itemize}
-    \item Thank you to Nathaniel McCallum \& Mike Bursell for going on on a limb and creating Enarx, creating Profian, and hiring me to work at Profian.
+    \item Thank you to Nathaniel McCallum \& Mike Bursell for going out on a limb and creating Enarx, creating Profian, and hiring me.
     \item Thank you to EuroProofNet for having me.
     \item Thank you to AMD and Intel for their exceptional technologies and fantastic documentation.
-    \item Thank you to the Confidential Computing Consortium for supporting this technology and sending me to the conference to speak.
+    \item Thank you to the Confidential Computing Consortium for supporting this technology and sending me.
 \end{itemize}
 \end{frame}
 
@@ -246,15 +231,15 @@ The Steward CA has to be trusted:
 \backupbegin
 \section{Appendix}
 \begin{frame}{The Future of Enarx}
-    Enarx development has slowed since Profian closed, but it's alive and there are a few things on the roadmap:
     \only<1> {
+        Enarx development has slowed since Profian closed, but it's alive and there are a few things on the roadmap:
         \begin{itemize}
             \item Recreate \texttt{try.enarx.dev}, where people can run their application in a hosted TEE for a limited time using Profian's ``Benefice'' project.
             \item Run a public Steward for people to test Enarx with an Enarx CA.
             \begin{itemize}
                 \item Possibly run a demo or debug Steward with looser restrictions.
                 \item URL: \texttt{ca.enarx.dev}
-                \item HSM integration
+                \item HSM integration (need to buy \& learn how to use an HSM)
             \end{itemize}
             \item Run a public Drawbridge.
             \item Continue work on the VFS project for Enarx:
@@ -270,10 +255,15 @@ The Steward CA has to be trusted:
         \end{itemize}
     }
     \only<2> {
+        Accomplished post-Profian:
         \begin{itemize}
-            \tick Received \& configured CI servers so Enarx commits are tested with SGX \& SNP.
+            \tick Received \& configured CI servers so Enarx commits are again tested with SGX \& SNP.
             \tick Merged in support for AMD SNP v10 patches.
-            \tick Steward \& Drawbridge relicensed.
+            \tick Steward \& Drawbridge relicensed, moved to Enarx org.
+            \tick Keeping the projects' dependencies updated (in progress).
+            \tick Keeping Enarx's dependency crates\footnote{Ciborium, Flagset, Sgx, Vdso, etc} created by Enarx/Profian updated and providing releases (on-going).
+            \tick Updates and content for the website (on-going).
+            \tick Gain control of social media accounts (Mastodon, LinkedIn) for Enarx.
         \end{itemize}
     }
 \end{frame}
