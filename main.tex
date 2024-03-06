@@ -186,10 +186,29 @@ allowed_advisories = ["INTEL-SA-00289", "INTEL-SA-00381", "INTEL-SA-00389",
 signer = ["7dc22240a8344fce6ba5f22ffbedabc52d4123ae0ba1c59796e521b953916b503f223b15c4429e7d8c5489ad71f1e193"]
 id_key_digest = ["d71a4d1da440d515cd69fbb1314acf4221726e82768a8bf6e4a4063ed542ac78349c8145b4666a4242a91a374387b473"]
 hash = ["ff717ae719840c93c1fca3b7db96488454c3c21b43531488eecff51cfed3febcd91da8be87a4cbcbc52a3bae770987c3"]
-abi = ">=1.51"
+abi = ">=1.51" # firmware version, SemVer
 policy_flags = ["SMT"]
 platform_info_flags = "SME"
     \end{minted}
+\end{frame}
+
+\section{Workflow}
+\begin{frame}{Workflow}
+    \begin{enumerate}
+        \item User tries to deploy an application from Drawbridge by providing a hash and Drawbridge URL
+        \item Enarx talks to Drawbridge and gets the URL of the Steward
+        \item Enarx gets the hash of the intended workload
+        \item Enarx creates an empty Keep
+        \item Enarx asks the CPU for an attestation report with the hash of the workload
+        \item Enarx generates a private key, CSR, and adds the attestation report to the CSR as an extension
+        \item Enarx sends the CSR to Steward
+        \item Steward validates the CSR and responds with a signed cert
+        \item Enarx authenticates to the Drawbridge and fetches workload
+        \item Drawbridge ensures the Enarx cert is in the Steward's PKI chain
+        \item Drawbridge sends the workload back to Enarx
+        \item Enarx ensures the workload's hash matches the expected hash
+        \item Enarx runs the workload if the hash matches
+    \end{enumerate}
 \end{frame}
 
 \section{Merits of CSR}
