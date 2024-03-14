@@ -44,6 +44,7 @@
 
 \begin{document}
 
+\section*{Title}
 \begin{frame}
 \maketitle
 \end{frame}
@@ -58,7 +59,7 @@ Enarx:
 \item runs WebAssembly (WASI) applications in Trusted Execution Environments (TEEs) under Linux
 \begin{itemize}
 \item AMD SEV-SNP, Intel SGX/EDMM
-\item Others can be supported!
+\item Others can be supported, like ARM CCA, etc.
 \end{itemize}
 \item is written in Rust
 \item can run on Windows, macOS, and ARM Linux without a TEE\footnote{Without protection, for testing \& development}
@@ -73,11 +74,11 @@ Steward is a Confidential Computing-aware Certificate Authority.
 \begin{itemize}
     \item Written in Rust
     \item Apache 2.0 licensed
-    \item Was a product of Profian, moved to the Enarx org, donated to the Linux Foundation
+    \item Was a product of Profian, moved to the Enarx org on GitHub, donated to the Linux Foundation
     \item Can be compiled as a native binary, or as a Wasi application for Enarx
     \item Steward is stateless, only has the vendors' root CA certificates.
-    \item Steward can generate a random key pair, or use provided public \& private key.
-    \item When deployed from Drawbridge, adds workload hash to the Certificate (SAN field) as the Drawbridge URL\footnote{Was planned, might not be implemented.}.
+    \item Steward can generate a random key pair (for testing), or use provided public \& private key.
+    \item When workloads are deployed from Drawbridge, Steward adds workload hash to the Certificate (SAN field) as the Drawbridge URL\footnote{Was planned, might not be implemented.}.
 \end{itemize}
 \end{frame}
 
@@ -87,9 +88,9 @@ Drawbridge is a Confidential Computing-aware workload repository
 \begin{itemize}
     \item Written in Rust
     \item Apache 2.0 licensed
-    \item Was a product of Profian, moved to the Enarx org, donated to the Linux Foundation
+    \item Was a product of Profian, moved to the Enarx org on GitHub, donated to the Linux Foundation
     \item Can be compiled as a native binary; in the future as a Wasi application for Enarx
-    \item Only release a workload to Enarx if it authenticates with a Steward-signed http client authentication.
+    \item Only releases a workload to Enarx if it authenticates with Steward-signed certificate authentication.
     \item Uses OpenID to handle user accounts through a provider.
 \end{itemize}
 \end{frame}
@@ -106,7 +107,7 @@ Receive CSR contents via HTTP Post as an Extension:
 
 The following items are checked:
 \begin{itemize}
-    \item Does the attestation report signature match the CPU public key?
+    \item Does the attestation report signature match the CPU public key and report body?
     \item Is the CPU's certificate in the PKI chain?
     \begin{itemize}
         \item Vendor CA $\rightarrow$ intermediate cert $\rightarrow$ CPU cert
@@ -142,12 +143,13 @@ The AMD CSR has a few specific items to check:
 \begin{frame}{Intel}
 Intel's format is rather different:
 \begin{itemize}
-    \item The Intel TCB\footnote{Trusted Computing Base} report is sent as part of the CSR, and requires the ``fmspc''\footnote{Family-Model-Stepping-Platform Type-CustomSKU}, which identifies the hardware, and contains:
+    \item The Intel TCB\footnote{Trusted Computing Base} report is sent as part of the CSR, and requires the ``fmspc''\footnote{Family-Model-Stepping-Platform Type-CustomSKU}, which identifies the hardware, and checks:
     \begin{itemize}
         \item Whether the firmware is updated, or Intel advisories for the firmware.
         \item Signing certificate \& signature of the TCB.
-        \item Next update date for the TCB.
-        \item Steward checks the signature, certificate, and that the TCB is current.
+        \item TCB signing certificate is part of Intel's PKI chain.
+        \item Next update date for the TCB hasn't passed.
+        \item The signature is valid.
     \end{itemize}
     \item Steward checks that the FMSPC from the public key matches the TCB report.
     \item Hashes are SHA-256
@@ -179,21 +181,27 @@ platform_info_flags = "SME"
 
 \section{Workflow}
 \begin{frame}{Workflow}
-    \begin{enumerate}
-        \item User tries to deploy an application from Drawbridge by providing a hash and Drawbridge URL
-        \item Enarx talks to Drawbridge and gets the URL of the Steward
-        \item Enarx gets the hash of the intended workload
-        \item Enarx creates an empty Keep
-        \item Enarx asks the CPU for an attestation report with the hash of the workload
-        \item Enarx generates a private key, CSR, and adds the attestation report to the CSR as an extension
-        \item Enarx sends the CSR to Steward
-        \item Steward validates the CSR and responds with a signed cert
-        \item Enarx authenticates to the Drawbridge and fetches workload
-        \item Drawbridge ensures the Enarx cert is in the Steward's PKI chain
-        \item Drawbridge sends the workload back to Enarx
-        \item Enarx ensures the workload's hash matches the expected hash
-        \item Enarx runs the workload if the hash matches
-    \end{enumerate}
+    \only<1> {
+        \begin{enumerate}
+            \item User tries to deploy an application from Drawbridge by providing a hash and Drawbridge URL
+            \item Enarx talks to Drawbridge and gets the URL of the Steward
+            \item Enarx gets the hash of the intended workload
+            \item Enarx creates an empty Keep
+            \item Enarx asks the CPU for an attestation report with the hash of the workload
+            \item Enarx generates a private key, CSR, and adds the attestation report to the CSR as an extension
+            \item Enarx sends the CSR to Steward
+            \item Steward validates the CSR and responds with a signed cert
+            \item Enarx authenticates to the Drawbridge and fetches workload
+            \item Drawbridge ensures the Enarx cert is in the Steward's PKI chain
+            \item Drawbridge sends the workload back to Enarx
+            \item Enarx ensures the workload's hash matches the expected hash
+            \item Enarx runs the workload if the hash matches
+        \end{enumerate}
+    }
+    \only<2> {
+        \centering
+        \includegraphics[width=1.01\linewidth,height=0.71\linewidth]{images/attestation-flow-mermaid.png}
+    }
 \end{frame}
 
 \section{Merits of CSR}
@@ -217,13 +225,15 @@ The Steward CA has to be trusted:
 \end{itemize}
 \end{frame}
 
-\section{Thank You!}
+\section{Acknowledgements}
 \begin{frame}
+Many thanks to:
 \begin{itemize}
-    \item Thank you to Nathaniel McCallum \& Mike Bursell for going out on a limb and creating Enarx, creating Profian, and hiring me.
-    \item Thank you to EuroProofNet for having me.
-    \item Thank you to AMD and Intel for their exceptional technologies and fantastic documentation.
-    \item Thank you to the Confidential Computing Consortium for supporting this technology and sending me.
+    \item Nathaniel McCallum \& Mike Bursell for going out on a limb and creating Enarx, creating Profian, and hiring me;
+    \item Harald Hoyer \& Roman Volosatovs for their patient mentorship;
+    \item EuroProofNet for having me;
+    \item AMD and Intel for their exceptional technologies and fantastic documentation; and
+    \item the Confidential Computing Consortium for supporting this technology and sending me.
 \end{itemize}
 \end{frame}
 
