@@ -1,4 +1,4 @@
-\documentclass[graphics]{beamer}
+\documentclass[graphics,compress]{beamer}
 \usepackage{graphicx} % Required for inserting images
 \usepackage{minted}
 \usepackage{tikz}
@@ -184,11 +184,11 @@ platform_info_flags = "SME"
 \begin{frame}{Workflow}
     \only<1> {
         \begin{enumerate}
-            \item User tries to deploy an application from Drawbridge by providing a hash and Drawbridge URL
+            \item Administrator deploys an application from Drawbridge by name \& hash
             \item Enarx talks to Drawbridge and gets the URL of the Steward
             \item Enarx gets the hash of the intended workload
             \item Enarx creates an empty Keep
-            \item Enarx asks the CPU for an attestation report with the hash of the workload
+            \item Enarx asks the CPU for an attestation report with workload hash
             \item Enarx generates a private key, CSR, and adds the attestation report to the CSR as an extension
             \item Enarx sends the CSR to Steward
             \item Steward validates the CSR and responds with a signed cert
@@ -196,7 +196,7 @@ platform_info_flags = "SME"
             \item Drawbridge ensures the Enarx cert is in the Steward's PKI chain
             \item Drawbridge sends the workload back to Enarx
             \item Enarx ensures the workload's hash matches the expected hash
-            \item Enarx runs the workload if the hash matches
+            \item Application runs and has Steward-signed certificate for communicating with third parties
         \end{enumerate}
     }
     \only<2> {
@@ -273,7 +273,7 @@ Many thanks to:
             \tick Merged in support for AMD SNP v10 patches (thanks \href{https://github.com/Freax13}{Tom Dohrmann}!)
             \tick Steward \& Drawbridge relicensed, moved to Enarx org.
             \tick Keeping the projects' dependencies updated (in progress).
-            \tick Keeping Enarx's dependency crates\footnote{Ciborium, Flagset, Sgx, Vdso, etc} created by Enarx/Profian updated and providing releases (on-going).
+            \tick Keeping Enarx's dependency crates\footnote{Ciborium, Crt0stack, Flagset, Sgx, Vdso, etc} created by Enarx/Profian updated and providing releases (on-going).
             \tick Updates and content for the website (on-going).
             \tick Gain control of social media accounts (Mastodon, LinkedIn) for Enarx.
         \end{itemize}
