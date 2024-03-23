@@ -54,19 +54,27 @@
 
 \section{Enarx}
 \begin{frame}{What is Enarx?}
+        Enarx:
+        \begin{itemize}
+        \item runs WebAssembly (WASI) applications in Trusted Execution Environments (TEEs) under Linux
+        \begin{itemize}
+        \item AMD SEV-SNP, Intel SGX/EDMM
+        \item Others can be supported, like ARM CCA, etc.
+        \end{itemize}
+        \item is written in Rust
+        \item can run on Windows, macOS, and ARM Linux without a TEE\footnote{Without protection, for testing \& development}
+        \item open source project, Apache 2.0 licensed
+        \end{itemize}
+\end{frame}
 
-Enarx:
-\begin{itemize}
-\item runs WebAssembly (WASI) applications in Trusted Execution Environments (TEEs) under Linux
-\begin{itemize}
-\item AMD SEV-SNP, Intel SGX/EDMM
-\item Others can be supported, like ARM CCA, etc.
-\end{itemize}
-\item is written in Rust
-\item can run on Windows, macOS, and ARM Linux without a TEE\footnote{Without protection, for testing \& development}
-\item open source project, Apache 2.0 licensed
-\end{itemize}
-
+\begin{frame}{WebAssembly}
+    The use of WebAssembly System Interface (WASI) can be thought of as Posix for WebAssembly, and it provides some benefits for Enarx:
+    \begin{itemize}
+        \item Portability: The same binary works on different platforms (SGX or SNP, ARM or x86\_64, for example). The binary doesn't need to know, or care, which platform is in use.
+        \item Flexibility: Almost any programming language may be used, including C/C++, Go, Rust, Typescript, Ruby, Zig, others.
+        \item Security: Wasi cannot open sockets or files, this has to be done on behalf of the WebAssembly runtime (Wasmtime), so there's no way the program could perform unknown network activity, or ``phone home'' without the operator's knowledge.
+        \item Confidential Computing provides data security, and the use of WebAssembly transforms the application into data, providing application security.
+    \end{itemize}
 \end{frame}
 
 \section{Steward}
@@ -98,10 +106,10 @@ Drawbridge is a Confidential Computing-aware workload repository
 
 \section{Attestation via CSR}
 \begin{frame}{Steward's Attestation Process}
-Receive CSR contents via HTTP Post as an Extension:
+Receive via HTTP Post a \href{https://en.wikipedia.org/wiki/Certificate_signing_request}{CSR} with an Extension:
 \begin{itemize}
     \item Attestation report
-    \item Vendor CRL
+    \item Vendor \href{https://en.wikipedia.org/wiki/Certificate_revocation_list}{CRL}
     \item AMD: CPU cert (Intel has the CPU cert in the Report)
     \item Intel: TCB report (firmware details)
 \end{itemize}
@@ -109,9 +117,9 @@ Receive CSR contents via HTTP Post as an Extension:
 The following items are checked:
 \begin{itemize}
     \item Does the attestation report signature match the CPU public key and report body?
-    \item Is the CPU's certificate in the PKI chain?
+    \item Is the CPU's certificate in the \href{https://en.wikipedia.org/wiki/Chain_of_trust}{PKI chain}?
     \begin{itemize}
-        \item Vendor CA $\rightarrow$ intermediate cert $\rightarrow$ CPU cert
+        \item Vendor \href{https://en.wikipedia.org/wiki/Certificate_authority}{CA} $\rightarrow$ intermediate cert $\rightarrow$ CPU cert
     \end{itemize}
     \item Is the CRL signed by the vendor CA?
     \item Is the CPU's certificate not in the vendor CRL?
@@ -128,7 +136,7 @@ HTTP response: Signed cert or error
 
 \subsection{AMD}
 \begin{frame}{AMD}
-The AMD CSR has a few specific items to check:
+The AMD CSR has a few additional items to check:
 \begin{itemize}
     \item Ensure unused parts of the report are zeroed
     \item AMD has Policy Flags to check:
