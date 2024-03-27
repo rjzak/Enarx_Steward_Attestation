@@ -65,9 +65,6 @@
         \item Others can be supported, like ARM \href{https://www.arm.com/architecture/security-features/arm-confidential-compute-architecture}{CCA}, etc.
         \end{itemize}
         \item has a very small TCB (Enarx + Wasmtime, your workload)
-        \begin{itemize}
-            \item No third-party firmware in the guest.
-        \end{itemize}
         \item is written in Rust
         \item can run on Windows, macOS, and ARM Linux without a TEE\footnote{Without protection, for testing \& development}
         \item open source project, Apache 2.0 licensed
@@ -79,8 +76,8 @@
     \begin{itemize}
         \item Portability: The same binary works on different platforms (SGX or SNP, ARM or x86\_64, for example). The binary doesn't need to know, or care, which platform is in use.
         \item Flexibility: Programming language options, including C/C++, Go, Rust, Typescript, Ruby, Zig, others.
-        \item Security: Wasi cannot open sockets or files, this has to be done on behalf of the WebAssembly runtime (Enarx uses \href{https://wasmtime.dev}{Wasmtime}), so there's no way the program could perform unknown network activity, or ``phone home'' without the operator's knowledge.
-        \item Confidential Computing provides data security, and the use of WebAssembly transforms the application into data, providing application security.
+        \item Security: Wasi cannot open sockets or files, this has to be done on behalf of the WebAssembly runtime (Enarx uses \href{https://wasmtime.dev}{Wasmtime}), no possibility for unexpected network activity.
+        \item Confidential Computing provides data privacy \& WebAssembly transforms the application into data, adding application privacy.
     \end{itemize}
 \end{frame}
 
@@ -146,7 +143,7 @@ HTTP response: Signed cert or error
 
 \subsection{AMD}
 \begin{frame}{AMD}
-The AMD CSR has a few additional items to check:
+The AMD CSR Extension has a few additional items to check:
 \begin{itemize}
     \item Ensure unused parts of the report are zeroed
     \item AMD has Policy Flags to check:
@@ -160,7 +157,7 @@ The AMD CSR has a few additional items to check:
 
 \subsection{Intel}
 \begin{frame}{Intel}
-Intel's format is rather different:
+The Intel Extension has additional checks:
 \begin{itemize}
     \item The Intel TCB\footnote{Trusted Computing Base} report is sent as part of the CSR, and requires the ``fmspc''\footnote{Family-Model-Stepping-Platform Type-CustomSKU}, which identifies the hardware, and checks:
     \begin{itemize}
@@ -203,7 +200,7 @@ platform_info_flags = "SME"
     \only<1> {
         \begin{enumerate}
             \item Administrator deploys an application from Drawbridge by name \& hash
-            \item Enarx talks to Drawbridge and gets the URL of the Steward
+            \item Enarx contacts Drawbridge and gets the URL of the Steward
             \item Enarx gets the hash of the intended workload
             \item Enarx creates an empty Keep
             \item Enarx asks the CPU for an attestation report with workload hash
@@ -240,11 +237,12 @@ platform_info_flags = "SME"
 \begin{frame}{Drawbacks of Attestation via CSR}
 The Steward CA has to be trusted:
 \begin{itemize}
-    \item added the Steward CA to the operating system's list of CAs, or modify the 2nd party application to only allow this specific CA;
+    \item added the Steward CA to the operating system's list of CAs, or modify the 2\textsuperscript{nd} party application to only allow this specific CA;
     \item any configuration of the Steward isn't known to the relying party:
     \begin{itemize}
         \item any allowed vulnerabilities in the firmware?
         \item allowed versions of Enarx?
+        \item how to address configuration with non-Enarx-based attestation?
     \end{itemize}
 \end{itemize}
 \end{frame}
