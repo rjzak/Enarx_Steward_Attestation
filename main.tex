@@ -64,6 +64,10 @@
         \item AMD \href{https://www.amd.com/de/developer/sev.html}{SEV}-SNP, Intel \href{https://www.intel.com/content/www/us/en/products/docs/accelerator-engines/software-guard-extensions.html}{SGX}/EDMM
         \item Others can be supported, like ARM \href{https://www.arm.com/architecture/security-features/arm-confidential-compute-architecture}{CCA}, etc.
         \end{itemize}
+        \item has a very small TCB (Enarx + Wasmtime, your workload)
+        \begin{itemize}
+            \item No third-party firmware in the guest.
+        \end{itemize}
         \item is written in Rust
         \item can run on Windows, macOS, and ARM Linux without a TEE\footnote{Without protection, for testing \& development}
         \item open source project, Apache 2.0 licensed
