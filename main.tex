@@ -179,8 +179,8 @@ The Intel Extension has additional checks:
 signer = ["7a49a07df0f8e90a6e1d9a63e3c696d9c844f0e3f8739b21daa640f99facc48a"]
 hash = ["4046ea255f0455131a024e1265ac1ebd131fdbd1240f1712a00381f6f04e8c15"]
 features = ["Debug", "ProvisioningKey", "EInitKey", "KSS"]
-enclave_security_version = 0
-enclave_product_id = 0
+enclave_security_version = 0 # isv_svn
+enclave_product_id = 0 # isv_prodid
 allowed_advisories = ["INTEL-SA-00289", "INTEL-SA-00381", "INTEL-SA-00389",
     "INTEL-SA-00477", "INTEL-SA-00586", "INTEL-SA-00614", "INTEL-SA-00615",
     "INTEL-SA-00617", "INTEL-SA-00657"]
@@ -202,16 +202,16 @@ platform_info_flags = "SME"
             \item Administrator deploys an application from Drawbridge by name \& hash
             \item Enarx contacts Drawbridge and gets the URL of the Steward
             \item Enarx gets the hash of the intended workload
-            \item Enarx creates an empty Keep
+            \item Enarx creates an empty Keep (Enarx without workload)
             \item Enarx asks the CPU for an attestation report with workload hash
-            \item Enarx generates a private key, CSR, and adds the attestation report to the CSR as an extension
+            \item Enarx generates a private key, CSR, adds the attestation report to the CSR as an Extension
             \item Enarx sends the CSR to Steward
-            \item Steward validates the CSR and responds with a signed cert
+            \item Steward validates the CSR and responds with a signed certificate
             \item Enarx authenticates to the Drawbridge and fetches workload
             \item Drawbridge ensures the Enarx cert is in the Steward's PKI chain
-            \item Drawbridge sends the workload back to Enarx
-            \item Enarx ensures the workload's hash matches the expected hash
-            \item Application runs and has Steward-signed certificate for communicating with third parties
+            \item Drawbridge responds with the workload back to Enarx
+            \item Enarx ensures the workload's hash matches the expected hash (\#1)
+            \item Application runs, using Steward-signed certificate for communicating with third parties
         \end{enumerate}
     }
     \only<2> {
