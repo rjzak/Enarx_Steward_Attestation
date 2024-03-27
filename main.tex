@@ -86,10 +86,12 @@ Steward is a Confidential Computing-aware Certificate Authority.
 \begin{itemize}
     \item Written in Rust
     \item Apache 2.0 licensed
-    \item Was a product of Profian, moved to the Enarx org on GitHub, donated to the Linux Foundation
-    \item Can be compiled as a native binary, or as a Wasi application for Enarx
+    \item Was a product of Profian, moved to the Enarx org on GitHub, donated to the Linux Foundation.
+    \item Can be compiled as a native binary, or as a Wasi application for Enarx.
     \item Steward is stateless, only has the vendors' root CA certificates.
     \item Steward can generate a random key pair (for testing), or use provided public \& private key.
+    \item Modular: can be expanded to support TDX, CCA, RISC-V, others.
+    \item Doesn't require Enarx, just the expected Extension format.
     \item When workloads are deployed from Drawbridge, Steward adds workload hash to the Certificate (SAN field) as the Drawbridge URL\footnote{Was planned, might not be implemented.}.
 \end{itemize}
 \end{frame}
@@ -112,10 +114,10 @@ Drawbridge is a Confidential Computing-aware workload repository
 \begin{frame}{Steward's Attestation Process}
 Receive via HTTP Post a \href{https://en.wikipedia.org/wiki/Certificate_signing_request}{CSR} with an Extension:
 \begin{itemize}
-    \item Attestation report
+    \item Attestation report direct from the hardware.
     \item Vendor \href{https://en.wikipedia.org/wiki/Certificate_revocation_list}{CRL}
     \item AMD: CPU cert (Intel has the CPU cert in the Report)
-    \item Intel: TCB report (firmware details)
+    \item Intel: TCB report (firmware details) direct from Intel's API.
 \end{itemize}
 
 The following items are checked:
@@ -220,8 +222,13 @@ platform_info_flags = "SME"
 \section{Merits of CSR}
 \begin{frame}{Merits of Attestation via CSR}
 \begin{itemize}
-    \item CSRs \& Certs don't require special software on the client end, second/third parties can use existing software.
+    \item CSRs \& Certs don't require special software on the client end, replying parties can use existing software.
+    \begin{itemize}
+        \item No new protocol required.
+        \item No special data format to be processed by relying party.
+    \end{itemize}
     \item No private information about the hardware is leaked.
+    \item Attest once, get a token (cert) which can be used in various ways without having to re-evaluate.
 \end{itemize}
 \end{frame}
 
