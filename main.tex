@@ -29,16 +29,16 @@
 \usetheme{Boadilla}
 \title{Enarx \& Steward Attestation}
 \author{Richard Zak // Enarx}
-\date{March 2024}
+\date{28 March 2024}
 
 \titlegraphic { 
 \begin{tikzpicture}[overlay,remember picture]
 \node[left=0.2cm] at (current page.-25){
-    \includegraphics[width=1.1cm]{images/enarx.png}
+    \href{https://enarx.dev}{\includegraphics[width=1.1cm]{images/enarx.png}}
 };
 \node[right=1.0cm] at (current page.205){
-    \includegraphics[width=1.1cm]{images/LF.png}
-    \includegraphics[width=1cm]{images/ccc.png}
+    \href{https://www.linuxfoundation.org}{\includegraphics[width=1.1cm]{images/LF.png}}
+    \href{https://confidentialcomputing.io}{\includegraphics[width=1cm]{images/ccc.png}}
 };
 \end{tikzpicture}
 }
@@ -48,6 +48,9 @@
 \section*{Title}
 \begin{frame}
 \maketitle
+\centering
+\href{https://europroofnet.github.io/wg3-dresden24/}{EuroProofNet WG3, Dresden}
+\vspace{2.2cm}
 \end{frame}
 
 \frame{\tableofcontents}
@@ -100,6 +103,7 @@ Drawbridge is a Confidential Computing-aware workload repository
     \item Was a product of Profian, moved to the Enarx org on GitHub, donated to the Linux Foundation
     \item Can be compiled as a native binary; in the future as a Wasi application for Enarx
     \item Only releases a workload to Enarx if it authenticates with Steward-signed certificate authentication.
+    \item Workload data stored as a Merkle tree.
     \item Uses OpenID to handle user accounts through a provider.
 \end{itemize}
 \end{frame}
