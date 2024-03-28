@@ -16,15 +16,23 @@
    \addtocounter{framenumber}{\value{framenumberappendix}} 
 }
 
-% DRAFT
-%\usepackage{background}
-%\backgroundsetup{
-%    placement=center,
-%    scale=2,
-%    contents={DRAFT},
-%    opacity=0.5
-%}
-%\setbeamertemplate{background}{\BgMaterial}
+\hypersetup{
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    pdffitwindow=false,     % window fit to page when opened
+    pdfstartview={XYZ null null 1.00},    % disable zoom
+    pdftitle={Enarx \& Steward Attestation},    % title
+    pdfauthor={Richard Zak},     % author
+    pdfsubject={Enarx's use of certificate signing requests for attestation},   % subject of the document
+    pdfkeywords={Confidential Computing, EuroProofNet, Enarx, Cryptography}, % list of keywords
+    pdfnewwindow=true,      % links in new PDF window
+    %colorlinks=true,       % false: boxed links; true: colored links
+    %linkcolor=red,          % color of internal links (change box color with linkbordercolor)
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
 
 \usetheme{Boadilla}
 \title{Enarx \& Steward Attestation}
